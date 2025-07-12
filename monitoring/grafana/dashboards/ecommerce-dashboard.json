@@ -1,0 +1,190 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "E-commerce Microservices Dashboard",
+    "tags": ["ecommerce", "microservices"],
+    "style": "dark",
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "API Gateway - Request Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(http_requests_total{job=\"gateway\"}[5m])",
+            "legendFormat": "{{method}} {{route}}"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "id": 2,
+        "title": "Service Response Times",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job=~\".*-service\"}[5m]))",
+            "legendFormat": "{{job}} - 95th percentile"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 0
+        }
+      },
+      {
+        "id": 3,
+        "title": "Circuit Breaker States",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "circuit_breaker_state",
+            "legendFormat": "{{service}}"
+          }
+        ],
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 0,
+          "y": 8
+        }
+      },
+      {
+        "id": 4,
+        "title": "Service Health Status",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "service_health",
+            "legendFormat": "{{service}}"
+          }
+        ],
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 6,
+          "y": 8
+        }
+      },
+      {
+        "id": 5,
+        "title": "Error Rate by Service",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(http_errors_total{job=~\".*-service\"}[5m])",
+            "legendFormat": "{{job}} - {{error_type}}"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 12
+        }
+      },
+      {
+        "id": 6,
+        "title": "Rate Limiting Violations",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(rate_limit_exceeded_total[5m])",
+            "legendFormat": "{{route}}"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 12
+        }
+      },
+      {
+        "id": 7,
+        "title": "Memory Usage",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "nodejs_memory_usage_bytes{type=\"heapUsed\"}",
+            "legendFormat": "{{job}} - Heap Used"
+          },
+          {
+            "expr": "nodejs_memory_usage_bytes{type=\"rss\"}",
+            "legendFormat": "{{job}} - RSS"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 20
+        }
+      },
+      {
+        "id": 8,
+        "title": "CPU Usage",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "nodejs_cpu_usage_percent",
+            "legendFormat": "{{job}}"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 20
+        }
+      },
+      {
+        "id": 9,
+        "title": "Authentication Failures",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(auth_failures_total[5m])",
+            "legendFormat": "{{route}} - {{reason}}"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 28
+        }
+      },
+      {
+        "id": 10,
+        "title": "Proxy Request Duration",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(proxy_request_duration_seconds_bucket[5m]))",
+            "legendFormat": "{{service}} - 95th percentile"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 28
+        }
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "refresh": "10s"
+  }
+} 

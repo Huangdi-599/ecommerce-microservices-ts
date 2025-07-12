@@ -1,0 +1,361 @@
+version: '3.8'
+
+services:
+  # API Gateway
+  gateway:
+    build: ./gateway
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
+      - AUTH_SERVICE_URL=http://auth:3001
+      - USER_SERVICE_URL=http://user:3002
+      - PRODUCT_SERVICE_URL=http://product:3003
+      - ORDER_SERVICE_URL=http://order:3004
+      - PAYMENT_SERVICE_URL=http://payment:3005
+      - NOTIFICATION_SERVICE_URL=http://notification:3006
+      - REVIEW_SERVICE_URL=http://review:3007
+      - SEARCH_SERVICE_URL=http://search:3008
+      - SHIPPING_SERVICE_URL=http://shipping:3009
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - ENABLE_METRICS=true
+    depends_on:
+      - redis
+      - auth
+      - user
+      - product
+      - order
+      - payment
+      - notification
+      - review
+      - search
+      - shipping
+    networks:
+      - ecommerce-network
+    restart: unless-stopped
+
+  # Authentication Service
+  auth:
+    build: ./services/auth
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - MONGODB_URI=mongodb://mongodb:27017/ecommerce_auth
+      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
+      - JWT_EXPIRES_IN=24h
+      - JWT_REFRESH_EXPIRES_IN=7d
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - ecommerce-network
+    restart: unless-stopped
+
+  # User Service
+  user:
+    build: ./services/user
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=production
+      - PORT=3002
+      - MONGODB_URI=mongodb://mongodb:27017/ecommerce_user
+      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - ecommerce-network
+    restart: unless-stopped
+
+  # Product Service
+  product:
+    build: ./services/product
+    ports:
+      - "3003:3003"
+    environment:
+      - NODE_ENV=production
+      - PORT=3003
+      - MONGODB_URI=mongodb://mongodb:27017/ecommerce_product
+      - CLOUDINARY_CLOUD_NAME=your-cloudinary-cloud-name
+      - CLOUDINARY_API_KEY=your-cloudinary-api-key
+      - CLOUDINARY_API_SECRET=your-cloudinary-api-secret
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - ecommerce-network
+    restart: unless-stopped
+
+  # Order Service
+  order:
+    build: ./services/order
+    ports:
+      - "3004:3004"
+    environment:
+      - NODE_ENV=production
+      - PORT=3004
+      - MONGODB_URI=mongodb://mongodb:27017/ecommerce_order
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - PRODUCT_SERVICE_URL=http://product:3003
+      - USER_SERVICE_URL=http://user:3002
+      - PAYMENT_SERVICE_URL=http://payment:3005
+      - NOTIFICATION_SERVICE_URL=http://notification:3006
+    depends_on:
+      - mongodb
+      - redis
+      - product
+      - user
+      - payment
+      - notification
+    networks:
+      - ecommerce-network
+    restart: unless-stopped
+
+  # Payment Service
+  payment:
+    build: ./services/payment
+    ports:
+      - "3005:3005"
+    environment:
+      - NODE_ENV=production
+      - PORT=3005
+      - MONGODB_URI=mongodb://mongodb:27017/ecommerce_payment
+      - STRIPE_SECRET_KEY=your-stripe-secret-key
+      - STRIPE_WEBHOOK_SECRET=your-stripe-webhook-secret
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - NOTIFICATION_SERVICE_URL=http://notification:3006
+    depends_on:
+      - mongodb
+      - redis
+      - notification
+    networks:
+      - ecommerce-network
+    restart: unless-stopped
+
+  # Notification Service
+  notification:
+    build: ./services/notification
+    ports:
+      - "3006:3006"
+    environment:
+      - NODE_ENV=production
+      - PORT=3006
+      - MONGODB_URI=mongodb://mongodb:27017/ecommerce_notification
+      - SMTP_HOST=smtp.gmail.com
+      - SMTP_PORT=587
+      - SMTP_USER=your-email@gmail.com
+      - SMTP_PASS=your-email-password
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - ecommerce-network
+    restart: unless-stopped
+
+  # Review Service
+  review:
+    build: ./services/review
+    ports:
+      - "3007:3007"
+    environment:
+      - NODE_ENV=production
+      - PORT=3007
+      - MONGODB_URI=mongodb://mongodb:27017/ecommerce_review
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - PRODUCT_SERVICE_URL=http://product:3003
+      - USER_SERVICE_URL=http://user:3002
+    depends_on:
+      - mongodb
+      - redis
+      - product
+      - user
+    networks:
+      - ecommerce-network
+    restart: unless-stopped
+
+  # Search Service
+  search:
+    build: ./services/search
+    ports:
+      - "3008:3008"
+    environment:
+      - NODE_ENV=production
+      - PORT=3008
+      - MONGODB_URI=mongodb://mongodb:27017/ecommerce_search
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - PRODUCT_SERVICE_URL=http://product:3003
+    depends_on:
+      - mongodb
+      - redis
+      - elasticsearch
+      - product
+    networks:
+      - ecommerce-network
+    restart: unless-stopped
+
+  # Shipping Service
+  shipping:
+    build: ./services/shipping
+    ports:
+      - "3009:3009"
+    environment:
+      - NODE_ENV=production
+      - PORT=3009
+      - MONGODB_URI=mongodb://mongodb:27017/ecommerce_shipping
+      - FEDEX_CLIENT_ID=your-fedex-client-id
+      - FEDEX_CLIENT_SECRET=your-fedex-client-secret
+      - UPS_ACCESS_KEY=your-ups-access-key
+      - UPS_USERNAME=your-ups-username
+      - UPS_PASSWORD=your-ups-password
+      - DHL_API_KEY=your-dhl-api-key
+      - USPS_USER_ID=your-usps-user-id
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - ecommerce-network
+    restart: unless-stopped
+
+  # MongoDB Database
+  mongodb:
+    image: mongo:6.0
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password123
+    volumes:
+      - mongodb_data:/data/db
+      - ./scripts/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - ecommerce-network
+    restart: unless-stopped
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - ecommerce-network
+    restart: unless-stopped
+
+  # Elasticsearch
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - ecommerce-network
+    restart: unless-stopped
+
+  # Kibana (Optional - for Elasticsearch visualization)
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    networks:
+      - ecommerce-network
+    restart: unless-stopped
+
+  # Prometheus (Monitoring)
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - ecommerce-network
+    restart: unless-stopped
+
+  # Grafana (Monitoring Dashboard)
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    depends_on:
+      - prometheus
+    networks:
+      - ecommerce-network
+    restart: unless-stopped
+
+  # Nginx (Load Balancer - Optional)
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - gateway
+    networks:
+      - ecommerce-network
+    restart: unless-stopped
+
+volumes:
+  mongodb_data:
+    driver: local
+  redis_data:
+    driver: local
+  elasticsearch_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+networks:
+  ecommerce-network:
+    driver: bridge 

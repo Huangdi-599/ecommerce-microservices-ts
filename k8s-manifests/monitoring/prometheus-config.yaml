@@ -1,0 +1,115 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: ecommerce
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+
+    rule_files:
+      # - "first_rules.yml"
+      # - "second_rules.yml"
+
+    scrape_configs:
+      # Prometheus itself
+      - job_name: 'prometheus'
+        static_configs:
+          - targets: ['localhost:9090']
+
+      # API Gateway
+      - job_name: 'gateway'
+        static_configs:
+          - targets: ['gateway-service:3000']
+        metrics_path: '/metrics'
+        scrape_interval: 10s
+
+      # Auth Service
+      - job_name: 'auth-service'
+        static_configs:
+          - targets: ['auth-service:3001']
+        metrics_path: '/metrics'
+        scrape_interval: 15s
+
+      # User Service
+      - job_name: 'user-service'
+        static_configs:
+          - targets: ['user-service:3002']
+        metrics_path: '/metrics'
+        scrape_interval: 15s
+
+      # Product Service
+      - job_name: 'product-service'
+        static_configs:
+          - targets: ['product-service:3003']
+        metrics_path: '/metrics'
+        scrape_interval: 15s
+
+      # Order Service
+      - job_name: 'order-service'
+        static_configs:
+          - targets: ['order-service:3004']
+        metrics_path: '/metrics'
+        scrape_interval: 15s
+
+      # Payment Service
+      - job_name: 'payment-service'
+        static_configs:
+          - targets: ['payment-service:3005']
+        metrics_path: '/metrics'
+        scrape_interval: 15s
+
+      # Notification Service
+      - job_name: 'notification-service'
+        static_configs:
+          - targets: ['notification-service:3006']
+        metrics_path: '/metrics'
+        scrape_interval: 15s
+
+      # Review Service
+      - job_name: 'review-service'
+        static_configs:
+          - targets: ['review-service:3007']
+        metrics_path: '/metrics'
+        scrape_interval: 15s
+
+      # Search Service
+      - job_name: 'search-service'
+        static_configs:
+          - targets: ['search-service:3008']
+        metrics_path: '/metrics'
+        scrape_interval: 15s
+
+      # Shipping Service
+      - job_name: 'shipping-service'
+        static_configs:
+          - targets: ['shipping-service:3009']
+        metrics_path: '/metrics'
+        scrape_interval: 15s
+
+      # Node Exporter (if running on host)
+      - job_name: 'node-exporter'
+        static_configs:
+          - targets: ['host.docker.internal:9100']
+        scrape_interval: 30s
+
+      # MongoDB Exporter (if available)
+      - job_name: 'mongodb-exporter'
+        static_configs:
+          - targets: ['mongodb:9216']
+        scrape_interval: 30s
+
+      # Redis Exporter (if available)
+      - job_name: 'redis-exporter'
+        static_configs:
+          - targets: ['redis:9121']
+        scrape_interval: 30s
+
+      # Elasticsearch
+      - job_name: 'elasticsearch'
+        static_configs:
+          - targets: ['elasticsearch:9200']
+        metrics_path: '/_prometheus/metrics'
+        scrape_interval: 30s 

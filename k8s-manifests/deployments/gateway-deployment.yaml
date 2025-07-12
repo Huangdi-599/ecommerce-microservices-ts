@@ -1,0 +1,117 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  namespace: ecommerce
+  labels:
+    app: gateway
+    component: api-gateway
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+        component: api-gateway
+    spec:
+      containers:
+      - name: gateway
+        image: your-registry/ecommerce-gateway:latest
+        ports:
+        - containerPort: 3000
+          name: http
+        env:
+        - name: NODE_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: NODE_ENV
+        - name: PORT
+          value: "3000"
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: JWT_SECRET
+        - name: JWT_EXPIRES_IN
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: JWT_EXPIRES_IN
+        - name: JWT_REFRESH_EXPIRES_IN
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: JWT_REFRESH_EXPIRES_IN
+        - name: REDIS_HOST
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: REDIS_HOST
+        - name: REDIS_PORT
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: REDIS_PORT
+        - name: ENABLE_METRICS
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: ENABLE_METRICS
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: LOG_LEVEL
+        # Service URLs
+        - name: AUTH_SERVICE_URL
+          value: "http://auth-service:3001"
+        - name: USER_SERVICE_URL
+          value: "http://user-service:3002"
+        - name: PRODUCT_SERVICE_URL
+          value: "http://product-service:3003"
+        - name: ORDER_SERVICE_URL
+          value: "http://order-service:3004"
+        - name: PAYMENT_SERVICE_URL
+          value: "http://payment-service:3005"
+        - name: NOTIFICATION_SERVICE_URL
+          value: "http://notification-service:3006"
+        - name: REVIEW_SERVICE_URL
+          value: "http://review-service:3007"
+        - name: SEARCH_SERVICE_URL
+          value: "http://search-service:3008"
+        - name: SHIPPING_SERVICE_URL
+          value: "http://shipping-service:3009"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        volumeMounts:
+        - name: logs
+          mountPath: /app/logs
+      volumes:
+      - name: logs
+        emptyDir: {}
+      restartPolicy: Always 
